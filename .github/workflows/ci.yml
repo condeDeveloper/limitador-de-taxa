@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura o .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaura os pacotes
+        run: dotnet restore
+
+      - name: Compila
+        run: dotnet build -c Release --no-restore
+
+      - name: Testa
+        run: dotnet test -c Release --no-build --logger "trx;LogFileName=testes.trx"
+
+      - name: Publica o resultado dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultado-dos-testes
+          path: '**/TestResults/*.trx'
